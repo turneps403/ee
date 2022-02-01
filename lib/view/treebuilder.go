@@ -15,7 +15,7 @@ func Run(tree *tview.TreeView, ctx context.Context) {
 		<-ctx.Done()
 		app.Stop()
 	}()
-	if err := app.SetRoot(tree, true).Run(); err != nil {
+	if err := app.EnableMouse(true).SetRoot(tree, true).Run(); err != nil {
 		panic(err)
 	}
 }
@@ -23,7 +23,11 @@ func Run(tree *tview.TreeView, ctx context.Context) {
 func BuildTree(oyaml interface{}, cancel context.CancelFunc) *tview.TreeView {
 	rootDir := "."
 	root := tview.NewTreeNode(rootDir).Expand() //.SetColor(tcell.ColorRed)
-	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
+	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root).SetDoneFunc(func(key tcell.Key) {
+		if key == tcell.KeyEsc {
+			cancel()
+		}
+	})
 	traverse(root, oyaml)
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
