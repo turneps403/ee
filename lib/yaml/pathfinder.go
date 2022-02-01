@@ -24,10 +24,10 @@ func GetFiles(dir, file string) []string {
 	ret := []string{}
 	for len(dir) > 0 {
 		fullPath := filepath.Join(dir, file)
-		if home == homeFile {
-			continue
-		} else if isFileReadable(fullPath) {
-			ret = append(ret, fullPath)
+		if fullPath != homeFile {
+			if isFileReadable(fullPath) {
+				ret = append(ret, fullPath)
+			}
 		}
 		newDir := filepath.Dir(dir)
 		if newDir == dir {
@@ -50,8 +50,9 @@ func isFileReadable(path string) bool {
 	}
 
 	if file, err := os.Open(path); err != nil {
+		return false
+	} else {
 		defer file.Close()
-		return true
 	}
-	return false
+	return true
 }

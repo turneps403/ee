@@ -17,7 +17,9 @@ func main() {
 	}
 	files := yaml.GetFiles(initDir, confFile)
 	yamlObj := yaml.LoadAndMerge(files)
+	// log.Printf("yamlObj: %v", yamlObj)
 	yamlTree := view.BuildTree(yamlObj)
+	//_ = yamlTree
 	view.Run(yamlTree)
 
 	// 	config, _ := toml.Load(`
