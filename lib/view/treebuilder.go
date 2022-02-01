@@ -1,28 +1,36 @@
 package view
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/atotto/clipboard"
 	tcell "github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-func Run(tree *tview.TreeView) {
+func Run(tree *tview.TreeView, ctx context.Context) {
 	app := tview.NewApplication()
+	go func() {
+		<-ctx.Done()
+		app.Stop()
+	}()
 	if err := app.SetRoot(tree, true).Run(); err != nil {
 		panic(err)
 	}
 }
 
-func BuildTree(oyaml interface{}) *tview.TreeView {
+func BuildTree(oyaml interface{}, cancel context.CancelFunc) *tview.TreeView {
 	rootDir := "."
-	root := tview.NewTreeNode(rootDir) //.SetColor(tcell.ColorRed)
+	root := tview.NewTreeNode(rootDir).Expand() //.SetColor(tcell.ColorRed)
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 	traverse(root, oyaml)
 
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
 		if reference != nil {
-			clipboard.WriteAll(reference.(string))
+			clipboard.WriteAll(fmt.Sprint(reference))
+			cancel()
 		}
 		children := node.GetChildren()
 		if len(children) != 0 {
@@ -34,17 +42,7 @@ func BuildTree(oyaml interface{}) *tview.TreeView {
 }
 
 func makeSimpleNode(v interface{}, pref string, ref interface{}, selectable bool, color tcell.Color) *tview.TreeNode {
-	var res string
-	switch data := v.(type) {
-	case string:
-		res = data
-	case int:
-		res = string(data)
-	default:
-		res = "-unknown-"
-	}
-
-	n := tview.NewTreeNode(pref + res)
+	n := tview.NewTreeNode(pref + fmt.Sprint(v))
 	if ref != nil {
 		n.SetReference(ref)
 	}
@@ -57,6 +55,7 @@ func makeSimpleNode(v interface{}, pref string, ref interface{}, selectable bool
 	if color != 0 {
 		n.SetColor(color)
 	}
+	n.Collapse()
 	return n
 }
 
@@ -71,7 +70,7 @@ func traverse(node *tview.TreeNode, oyaml interface{}) *tview.TreeNode {
 			key := makeSimpleNode(k, "", nil, false, tcell.ColorGreen)
 			node.AddChild(traverse(key, v))
 		}
-	case string:
+	case string, int:
 		node.AddChild(makeSimpleNode(data, "$ ", data, true, 0))
 	}
 
