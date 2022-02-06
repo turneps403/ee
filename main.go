@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"example.com/ee/lib/view"
-	"example.com/ee/lib/yaml"
+	"github.com/turneps403/ee/lib/view"
+	"github.com/turneps403/ee/lib/yaml"
 )
 
 const confFile = ".ee.yaml"

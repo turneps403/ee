@@ -1,4 +1,4 @@
-module example.com/ee
+module github.com/turneps403/ee
 
 go 1.16
 
